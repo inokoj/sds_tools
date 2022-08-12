@@ -18,17 +18,14 @@ class GoogleTranslate:
 
 		# Load configuration file
 		self.connection_port = config['CONNECTION'].getint('port')
-		self.translate_service_url = config['TRANSLATE'].get('service_url')
 		self.translate_lang_source = config['TRANSLATE'].get('source')
 		self.translate_lang_dest = config['TRANSLATE'].get('dest')
 
 		print(self.connection_port)
 		print(self.translate_lang_source)
 		print(self.translate_lang_dest)
-		#self.translate_lang_to = config['TRANSLATE'].get('to')
 
 		self.server = Server("localhost", self.connection_port, self)
-		# self.translator = Translator(service_urls=[self.translate_service_url])
 		self.translator = Translator()
 		self.translator.raise_Exception = True
 
