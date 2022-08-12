@@ -28,7 +28,9 @@ class GoogleTranslate:
 		#self.translate_lang_to = config['TRANSLATE'].get('to')
 
 		self.server = Server("localhost", self.connection_port, self)
-		self.translator = Translator(service_urls=[self.translate_service_url])
+		# self.translator = Translator(service_urls=[self.translate_service_url])
+		self.translator = Translator()
+		self.translator.raise_Exception = True
 
 		t1 = threading.Thread(target=self.server.start_connecting, args=())
 		t1.setDaemon(True)

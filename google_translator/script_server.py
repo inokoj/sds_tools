@@ -17,10 +17,10 @@ class Server:
 	def start_connecting(self):
 		# Establishing a server
 		self.soc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-		self.soc.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-		self.soc.bind((self.HOST, self.PORT))
-		self.soc.listen()
-		print('Waiting for connection...')
+		# self.soc.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+		self.soc.bind(('', self.PORT))
+		self.soc.listen(10)
+		print('Waiting for connection on ...', self.PORT)
 
 		try:
 			while True:
@@ -47,6 +47,7 @@ class Server:
 					
 		except Exception as e:
 			print(e)
+			print(traceback.format_exc())
 			print('Disconnected, waiting...')
 			self.start_connecting()
 	
