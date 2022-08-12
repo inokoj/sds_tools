@@ -1,0 +1,7 @@
+[CONNECTION]
+port = 5031
+
+[TRANSLATE]
+service_url = translate.googleapis.com
+dest = en
+source = ja
