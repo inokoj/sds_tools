@@ -50,13 +50,13 @@ device = torch.device("cuda:%d" % GPU_ID if torch.cuda.is_available() else "cpu"
 # Adin tools setting
 #
 
-# ADIN_PATH = ".\\adintool_windows\\adintool.exe"
-# ADIN_INPORT = 5900
-# ADIN_SERVER = "127.0.0.1"
-# ADIN_PARAMTYPE = "FBANK_D_A"
-# ADIN_VECLEN = 120
-# ADIN_HTKCONF = ".\\adintool_windows\\config.lmfb"
-# ADIN_PORT = 6632
+ADIN_PATH = ".\\adintool_windows\\adintool.exe"
+ADIN_INPORT = 5900
+ADIN_SERVER = "127.0.0.1"
+ADIN_PARAMTYPE = "FBANK_D_A"
+ADIN_VECLEN = 120
+ADIN_HTKCONF = ".\\adintool_windows\\config.lmfb"
+ADIN_PORT = 6632
 
 THRESHOLD_LAUGH_DETECT = 0.5
 THRESHOLD_LAUGH_SHARE = 0.7
@@ -221,7 +221,7 @@ class SocialSignalPrediction():
 			filename_zscore = config[model_type].get('filename_zscore')
 			num_dim = config[model_type].getint('num_dim')
 			target_index = config[model_type].getint('target_index')
-			do_process = config[model_type].getint('do_process')
+			do_process = config[model_type].getboolean('do_process')
 			self.MODEL_DEFS[name] = [filename, num_dim, target_index, filename_model_def, filename_zscore, do_process]
 
 		self.ishiki_server = None
@@ -332,8 +332,9 @@ class SocialSignalPrediction():
 		self.GUI.modelLoadingFinished()
 
 		#runs adintool
-		#subprocess.Popen("%s -in adinnet -inport %d -out vecnet -server %s -paramtype %s -veclen %d -htkconf %s -port %d" % \
-		#	(ADIN_PATH, ADIN_INPORT, ADIN_SERVER, ADIN_PARAMTYPE, ADIN_VECLEN, ADIN_HTKCONF, ADIN_PORT), shell=True)
+		# subprocess.Popen("%s -in adinnet -inport %d -out vecnet -server %s -paramtype %s -veclen %d -htkconf %s -port %d" % \
+		# 	(ADIN_PATH, ADIN_INPORT, ADIN_SERVER, ADIN_PARAMTYPE, ADIN_VECLEN, ADIN_HTKCONF, ADIN_PORT), shell=True)
+		
 		self.adinclientsock = connection_adin(self.adinserver_port)
 
 		# make the ishiki connection in a new thread - we can still do predictions even without connecting to it
@@ -460,8 +461,8 @@ class SocialSignalPrediction():
 					
 					probability = float((sigmoid_target / sigmoid_sum).data.item())
 
-					output_log('p(%s)=%.4f' % (type_ss, probability))
-					msg_result = "%s,%d,%f,%d\n" % (type_ss, ts, probability, self.target_human_id)
+				output_log('p(%s)=%.4f' % (type_ss, probability))
+				msg_result = "%s,%d,%f,%d\n" % (type_ss, ts, probability, self.target_human_id)
 
 				#update GUI
 				if type_ss == 'backchannel':
@@ -509,10 +510,10 @@ class SocialSignalPrediction():
 
 					data_x = lt_sc.transform(f_fbank_concat)
 					lt_probability = lt_model.predict_proba(data_x)[0][1]
-					output_log('p(mirthful)=%.4f' % lt_probability)
+					output_log('p(type)=%.4f' % lt_probability)
 					
-					shared_laugh_prob, laught_type = run_shared_laughter_model(shared_feat_mat, self.shared_laugh_model_scaler, self.shared_laugh_model)
-					output_log('p(%s)=%.4f' % ("shared laugh", shared_laugh_prob))
+					#shared_laugh_prob, laught_type = run_shared_laughter_model(shared_feat_mat, self.shared_laugh_model_scaler, self.shared_laugh_model)
+					#output_log('p(%s)=%.4f' % ("shared laugh", shared_laugh_prob))
 					msg_result = "%s,%d,%f,%f,%f,%d\n" % ("shared laugh", ts, probability, sl_probability, lt_probability, self.target_human_id)
 					
 					self.GUI.updateSharedLaugh(sl_probability)
@@ -563,7 +564,7 @@ class GUI(Frame):
 
 		self.canvas = Canvas(self)
 
-		self.bg = self.canvas.create_rectangle(120, 70, 500, 201, fill = "White")
+		self.bg = self.canvas.create_rectangle(120, 70, 550, 201, fill = "White")
 		self.bc_rec = self.canvas.create_rectangle(0,0,0,0,fill="yellow")
 		self.laugh_rec = self.canvas.create_rectangle(0,0,0,0,fill="orange red")
 		self.shared_laugh_rec = self.canvas.create_rectangle(0,0,0,0,fill="dodger blue")
@@ -577,10 +578,10 @@ class GUI(Frame):
 		self.laugh_label.place(x=240, y= 210)
 
 		self.shared_laugh_label = Label(text = "P (Shared)")
-		self.shared_laugh_label.place(x=330, y= 210)
+		self.shared_laugh_label.place(x=360, y= 210)
 
 		self.laugh_type_label = Label(text = "P (Type)")
-		self.laugh_type_label.place(x=420, y= 210)
+		self.laugh_type_label.place(x=480, y= 210)
 
 		self.bc_percent = Label(text = "", font = "-weight bold", bg = "White")
 		self.laugh_percent = Label(text = "", font = "-weight bold", bg = "White")
@@ -588,9 +589,9 @@ class GUI(Frame):
 		self.laugh_type_percent = Label(text = "", font = "-weight bold", bg = "White")
 
 		self.sig_time = Label(text = "", font = "-weight bold")
-		self.sig_time.place(x = 30, y = 100)
+		self.sig_time.place(x = 10, y = 100)
 		self.sig_length = Label(text = "", font = "-weight bold")
-		self.sig_length.place(x = 30, y = 130)
+		self.sig_length.place(x = 10, y = 130)
 
 
 	def updateBC(self, prob):
@@ -609,7 +610,7 @@ class GUI(Frame):
 		self.shared_laugh_percent.config(text= str(int(prob*100)) + "%")
 	
 	def updateLaughType(self, prob):
-		self.canvas.coords(self.shared_laugh_rec, 470, 200 - (prob*100), 500 ,200)
+		self.canvas.coords(self.laugh_type_rec, 470, 200 - (prob*100), 500 ,200)
 		self.laugh_type_percent.place(x = 470, y = 75)
 		self.laugh_type_percent.config(text= str(int(prob*100)) + "%")
 
@@ -637,6 +638,6 @@ if __name__ == '__main__':
 
 	ssa = SocialSignalPrediction(args.config)
 	root = Tk()
-	root.geometry("550x250+300+300")
+	root.geometry("600x250+300+300")
 	GUI(root)
 	root.mainloop()
